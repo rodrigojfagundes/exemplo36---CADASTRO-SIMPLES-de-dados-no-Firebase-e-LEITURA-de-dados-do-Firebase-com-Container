@@ -1,0 +1,111 @@
+MAIN FUNCIONANDO
+
+import 'package:exemplo36/inicio.dart';
+import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+void main() async {
+//inicializando o firebase
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+
+//cadastrando o veiculo no firebase
+//DIZENDO QUAL VAI SER O NOME DO DOC
+  //FirebaseFirestore.instance.collection("carros").doc("ford").set({
+  FirebaseFirestore.instance.collection("carros").add({
+    "nome": "ford ka",
+    "preco": 20.00,
+    "ano": "2010",
+    "cidade": "tijucas",
+    "ativo": true
+  });
+
+  FirebaseFirestore.instance.collection("carros").doc("ford-1").set(
+      {"nome": "ford mustang", "preco": 200.00, "ano": 2020, "ativo": false});
+
+  runApp(const MyApp());
+}
+
+class MyApp extends StatefulWidget {
+  const MyApp({Key? key}) : super(key: key);
+
+  @override
+  _MyAppState createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  @override
+  Widget build(BuildContext context) {
+    // ignore: prefer_const_constructors
+    return MaterialApp(home: inicio());
+  }
+}
+
+
+
+
+INICIO FUNCIONANDO
+
+
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+class inicio extends StatelessWidget {
+  const inicio({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    var conexao_fb = FirebaseFirestore.instance
+        .collection('carros')
+        .where('ativo', isEqualTo: true)
+        .snapshots();
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('modelo de carros'),
+      ),
+      body: StreamBuilder(
+        stream: conexao_fb,
+        builder: (
+          BuildContext context,
+          AsyncSnapshot<QuerySnapshot> snapshot,
+        ) {
+          if (!snapshot.hasData) {
+            return const Center(
+              //gif de carregando...
+              child: CircularProgressIndicator(),
+            );
+          }
+
+          return Scaffold(
+            body: SafeArea(
+                child: Column(
+              children: snapshot.data!.docs.map(
+                (documents) {
+                  //passando o valor de campo para o container
+                  return Column(children: [
+                    Container(
+                      height: 100,
+                      width: 100,
+                      color: Colors.blue,
+                      child: Text(documents['nome']),
+                    ),
+                    Container(
+                      height: 100,
+                      width: 100,
+                      color: Colors.blue,
+                      child: Text(documents['cidade']),
+                    ),
+                    Text(documents['ano']),
+                  ]);
+                },
+              ).toList(),
+            )),
+          );
+        },
+      ),
+    );
+  }
+}
